@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "real-estate": {
+      "type": "stdio",
+      "command": "uv",
+      "args": [
+        "run",
+        "--directory",
+        "./real-estate-mcp",
+        "python",
+        "src/real_estate/mcp_server/server.py"
+      ],
+      "env": {
+        "DATA_GO_KR_API_KEY": "1deaf1b26dc45dd6f26d5b481d28d2fe784327eb82cc8ccdb727a51baf462419",
+        "ODCLOUD_SERVICE_KEY": "1deaf1b26dc45dd6f26d5b481d28d2fe784327eb82cc8ccdb727a51baf462419",
+        "ODCLOUD_API_KEY": "1deaf1b26dc45dd6f26d5b481d28d2fe784327eb82cc8ccdb727a51baf462419",
+        "ONBID_API_KEY": "1deaf1b26dc45dd6f26d5b481d28d2fe784327eb82cc8ccdb727a51baf462419"
+      }
+    }
+  }
+}

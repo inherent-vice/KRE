@@ -1,0 +1,909 @@
+{
+  "summary": {
+    "tool_count": 26,
+    "async_tool_count": 21,
+    "sync_tool_count": 5,
+    "domain_counts": {
+      "core": 2,
+      "finance": 3,
+      "onbid": 10,
+      "rent": 4,
+      "subscription": 2,
+      "trade": 5
+    },
+    "required_env_vars": [
+      "DATA_GO_KR_API_KEY",
+      "ODCLOUD_API_KEY",
+      "ODCLOUD_SERVICE_KEY",
+      "ONBID_API_KEY"
+    ]
+  },
+  "recommended_call_sequences": [
+    {
+      "goal": "Trade and rent market check",
+      "sequence": [
+        "get_region_code",
+        "get_current_year_month",
+        "get_apartment_trades or get_officetel_trades or get_villa_trades or get_single_house_trades",
+        "get_apartment_rent or get_officetel_rent or get_villa_rent or get_single_house_rent"
+      ]
+    },
+    {
+      "goal": "Subscription analysis",
+      "sequence": [
+        "get_apt_subscription_info",
+        "get_apt_subscription_results"
+      ]
+    },
+    {
+      "goal": "Public auction analysis",
+      "sequence": [
+        "get_onbid_top_code_info / get_onbid_addr1_info",
+        "get_onbid_middle_code_info / get_onbid_addr2_info / get_onbid_addr3_info",
+        "get_onbid_thing_info_list or get_public_auction_items",
+        "get_public_auction_item_detail (optional)"
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "name": "get_current_year_month",
+      "domain": "core",
+      "module": "server.py",
+      "kind": "sync",
+      "description": "Return the current year and month in YYYYMM format for use with trade/rent tools.",
+      "parameters": [],
+      "returns": "dict[str, str]",
+      "requires_env": []
+    },
+    {
+      "name": "get_region_code",
+      "domain": "core",
+      "module": "server.py",
+      "kind": "sync",
+      "description": "Convert a user-supplied region name to a 5-digit legal district code for the MOLIT API.",
+      "parameters": [
+        {
+          "name": "query",
+          "annotation": "str",
+          "default": null
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": []
+    },
+    {
+      "name": "calculate_compound_growth",
+      "domain": "finance",
+      "module": "tools/finance.py",
+      "kind": "sync",
+      "description": "Calculate compounded asset growth with initial capital and monthly contributions.",
+      "parameters": [
+        {
+          "name": "initial_10k",
+          "annotation": "int",
+          "default": null
+        },
+        {
+          "name": "monthly_contribution_10k",
+          "annotation": "float",
+          "default": null
+        },
+        {
+          "name": "annual_rate_pct",
+          "annotation": "float",
+          "default": null
+        },
+        {
+          "name": "years",
+          "annotation": "int",
+          "default": null
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": []
+    },
+    {
+      "name": "calculate_loan_payment",
+      "domain": "finance",
+      "module": "tools/finance.py",
+      "kind": "sync",
+      "description": "Calculate equal principal+interest monthly payment (EMI) in 10k KRW units.",
+      "parameters": [
+        {
+          "name": "principal_10k",
+          "annotation": "int",
+          "default": null
+        },
+        {
+          "name": "annual_rate_pct",
+          "annotation": "float",
+          "default": null
+        },
+        {
+          "name": "years",
+          "annotation": "int",
+          "default": null
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": []
+    },
+    {
+      "name": "calculate_monthly_cashflow",
+      "domain": "finance",
+      "module": "tools/finance.py",
+      "kind": "sync",
+      "description": "Calculate monthly free cashflow after debt service and costs.",
+      "parameters": [
+        {
+          "name": "monthly_income_10k",
+          "annotation": "float",
+          "default": null
+        },
+        {
+          "name": "monthly_loan_payment_10k",
+          "annotation": "float",
+          "default": null
+        },
+        {
+          "name": "monthly_living_cost_10k",
+          "annotation": "float",
+          "default": null
+        },
+        {
+          "name": "other_monthly_costs_10k",
+          "annotation": "float",
+          "default": "0.0"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": []
+    },
+    {
+      "name": "get_onbid_addr1_info",
+      "domain": "onbid",
+      "module": "tools/onbid.py",
+      "kind": "async",
+      "description": "Return Onbid address depth-1 list (시/도).",
+      "parameters": [
+        {
+          "name": "page_no",
+          "annotation": "int",
+          "default": "1"
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "100"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "ONBID_API_KEY",
+        "DATA_GO_KR_API_KEY (fallback)"
+      ]
+    },
+    {
+      "name": "get_onbid_addr2_info",
+      "domain": "onbid",
+      "module": "tools/onbid.py",
+      "kind": "async",
+      "description": "Return Onbid address depth-2 list (시/군/구) under addr1.",
+      "parameters": [
+        {
+          "name": "addr1",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "page_no",
+          "annotation": "int",
+          "default": "1"
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "100"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "ONBID_API_KEY",
+        "DATA_GO_KR_API_KEY (fallback)"
+      ]
+    },
+    {
+      "name": "get_onbid_addr3_info",
+      "domain": "onbid",
+      "module": "tools/onbid.py",
+      "kind": "async",
+      "description": "Return Onbid address depth-3 list (읍/면/동) under addr2.",
+      "parameters": [
+        {
+          "name": "addr2",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "page_no",
+          "annotation": "int",
+          "default": "1"
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "100"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "ONBID_API_KEY",
+        "DATA_GO_KR_API_KEY (fallback)"
+      ]
+    },
+    {
+      "name": "get_onbid_bottom_code_info",
+      "domain": "onbid",
+      "module": "tools/onbid.py",
+      "kind": "async",
+      "description": "Return Onbid bottom-level usage/category codes under a parent CTGR_ID.",
+      "parameters": [
+        {
+          "name": "ctgr_id",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "page_no",
+          "annotation": "int",
+          "default": "1"
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "100"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "ONBID_API_KEY",
+        "DATA_GO_KR_API_KEY (fallback)"
+      ]
+    },
+    {
+      "name": "get_onbid_dtl_addr_info",
+      "domain": "onbid",
+      "module": "tools/onbid.py",
+      "kind": "async",
+      "description": "Return Onbid detailed addresses under addr3.",
+      "parameters": [
+        {
+          "name": "addr3",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "page_no",
+          "annotation": "int",
+          "default": "1"
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "100"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "ONBID_API_KEY",
+        "DATA_GO_KR_API_KEY (fallback)"
+      ]
+    },
+    {
+      "name": "get_onbid_middle_code_info",
+      "domain": "onbid",
+      "module": "tools/onbid.py",
+      "kind": "async",
+      "description": "Return Onbid middle-level usage/category codes under a parent CTGR_ID.",
+      "parameters": [
+        {
+          "name": "ctgr_id",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "page_no",
+          "annotation": "int",
+          "default": "1"
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "100"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "ONBID_API_KEY",
+        "DATA_GO_KR_API_KEY (fallback)"
+      ]
+    },
+    {
+      "name": "get_onbid_thing_info_list",
+      "domain": "onbid",
+      "module": "tools/onbid.py",
+      "kind": "async",
+      "description": "Return Onbid ThingInfoInquireSvc (물건정보조회서비스) list items.",
+      "parameters": [
+        {
+          "name": "page_no",
+          "annotation": "int",
+          "default": "1"
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "20"
+        },
+        {
+          "name": "dpsl_mtd_cd",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "ctgr_hirk_id",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "ctgr_hirk_id_mid",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "sido",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "sgk",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "emd",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "goods_price_from",
+          "annotation": "int | None",
+          "default": "None"
+        },
+        {
+          "name": "goods_price_to",
+          "annotation": "int | None",
+          "default": "None"
+        },
+        {
+          "name": "open_price_from",
+          "annotation": "int | None",
+          "default": "None"
+        },
+        {
+          "name": "open_price_to",
+          "annotation": "int | None",
+          "default": "None"
+        },
+        {
+          "name": "pbct_begn_dtm",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "pbct_cls_dtm",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "cltr_nm",
+          "annotation": "str | None",
+          "default": "None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "ONBID_API_KEY",
+        "DATA_GO_KR_API_KEY (fallback)"
+      ]
+    },
+    {
+      "name": "get_onbid_top_code_info",
+      "domain": "onbid",
+      "module": "tools/onbid.py",
+      "kind": "async",
+      "description": "Return Onbid top-level usage/category codes.",
+      "parameters": [
+        {
+          "name": "page_no",
+          "annotation": "int",
+          "default": "1"
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "100"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "ONBID_API_KEY",
+        "DATA_GO_KR_API_KEY (fallback)"
+      ]
+    },
+    {
+      "name": "get_public_auction_item_detail",
+      "domain": "onbid",
+      "module": "tools/onbid.py",
+      "kind": "async",
+      "description": "Return Onbid next-gen (B010003) bid result detail for a single item.",
+      "parameters": [
+        {
+          "name": "cltr_mng_no",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "pbct_cdtn_no",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "page_no",
+          "annotation": "int",
+          "default": "1"
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "20"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "ONBID_API_KEY",
+        "DATA_GO_KR_API_KEY (fallback)"
+      ]
+    },
+    {
+      "name": "get_public_auction_items",
+      "domain": "onbid",
+      "module": "tools/onbid.py",
+      "kind": "async",
+      "description": "Return Onbid next-gen (B010003) bid result list for public auction items.",
+      "parameters": [
+        {
+          "name": "page_no",
+          "annotation": "int",
+          "default": "1"
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "20"
+        },
+        {
+          "name": "cltr_type_cd",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "prpt_div_cd",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "dsps_mthod_cd",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "bid_div_cd",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "lctn_sdnm",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "lctn_sggnm",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "lctn_emd_nm",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "opbd_dt_start",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "opbd_dt_end",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "apsl_evl_amt_start",
+          "annotation": "int | None",
+          "default": "None"
+        },
+        {
+          "name": "apsl_evl_amt_end",
+          "annotation": "int | None",
+          "default": "None"
+        },
+        {
+          "name": "lowst_bid_prc_start",
+          "annotation": "int | None",
+          "default": "None"
+        },
+        {
+          "name": "lowst_bid_prc_end",
+          "annotation": "int | None",
+          "default": "None"
+        },
+        {
+          "name": "pbct_stat_cd",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "onbid_cltr_nm",
+          "annotation": "str | None",
+          "default": "None"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "ONBID_API_KEY",
+        "DATA_GO_KR_API_KEY (fallback)"
+      ]
+    },
+    {
+      "name": "get_apartment_rent",
+      "domain": "rent",
+      "module": "tools/rent.py",
+      "kind": "async",
+      "description": "Return apartment lease and monthly-rent records for a region and month.",
+      "parameters": [
+        {
+          "name": "region_code",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "year_month",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "100"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "DATA_GO_KR_API_KEY"
+      ]
+    },
+    {
+      "name": "get_officetel_rent",
+      "domain": "rent",
+      "module": "tools/rent.py",
+      "kind": "async",
+      "description": "Return officetel lease and monthly-rent records for a region and month.",
+      "parameters": [
+        {
+          "name": "region_code",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "year_month",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "100"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "DATA_GO_KR_API_KEY"
+      ]
+    },
+    {
+      "name": "get_single_house_rent",
+      "domain": "rent",
+      "module": "tools/rent.py",
+      "kind": "async",
+      "description": "Return detached and multi-unit house (단독/다가구) lease/rent records for a region and month.",
+      "parameters": [
+        {
+          "name": "region_code",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "year_month",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "100"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "DATA_GO_KR_API_KEY"
+      ]
+    },
+    {
+      "name": "get_villa_rent",
+      "domain": "rent",
+      "module": "tools/rent.py",
+      "kind": "async",
+      "description": "Return row-house and multi-family (연립다세대) lease/rent records for a region and month.",
+      "parameters": [
+        {
+          "name": "region_code",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "year_month",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "100"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "DATA_GO_KR_API_KEY"
+      ]
+    },
+    {
+      "name": "get_apt_subscription_info",
+      "domain": "subscription",
+      "module": "tools/subscription.py",
+      "kind": "async",
+      "description": "Return Applyhome (청약홈) APT subscription notice metadata.",
+      "parameters": [
+        {
+          "name": "page",
+          "annotation": "int",
+          "default": "1"
+        },
+        {
+          "name": "per_page",
+          "annotation": "int",
+          "default": "100"
+        },
+        {
+          "name": "return_type",
+          "annotation": "str",
+          "default": "'JSON'"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "ODCLOUD_API_KEY or ODCLOUD_SERVICE_KEY",
+        "DATA_GO_KR_API_KEY (fallback)"
+      ]
+    },
+    {
+      "name": "get_apt_subscription_results",
+      "domain": "subscription",
+      "module": "tools/subscription.py",
+      "kind": "async",
+      "description": "Return Applyhome (청약홈) subscription stats: requests, winners, rates, and scores.",
+      "parameters": [
+        {
+          "name": "stat_kind",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "stat_year_month",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "area_code",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "reside_secd",
+          "annotation": "str | None",
+          "default": "None"
+        },
+        {
+          "name": "page",
+          "annotation": "int",
+          "default": "1"
+        },
+        {
+          "name": "per_page",
+          "annotation": "int",
+          "default": "100"
+        },
+        {
+          "name": "return_type",
+          "annotation": "str",
+          "default": "'JSON'"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "ODCLOUD_API_KEY or ODCLOUD_SERVICE_KEY",
+        "DATA_GO_KR_API_KEY (fallback)"
+      ]
+    },
+    {
+      "name": "get_apartment_trades",
+      "domain": "trade",
+      "module": "tools/trade.py",
+      "kind": "async",
+      "description": "Return apartment sale records and summary statistics for a region and month.",
+      "parameters": [
+        {
+          "name": "region_code",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "year_month",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "100"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "DATA_GO_KR_API_KEY"
+      ]
+    },
+    {
+      "name": "get_commercial_trade",
+      "domain": "trade",
+      "module": "tools/trade.py",
+      "kind": "async",
+      "description": "Return commercial and business building (상업업무용) sale records for a region and month.",
+      "parameters": [
+        {
+          "name": "region_code",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "year_month",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "100"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "DATA_GO_KR_API_KEY"
+      ]
+    },
+    {
+      "name": "get_officetel_trades",
+      "domain": "trade",
+      "module": "tools/trade.py",
+      "kind": "async",
+      "description": "Return officetel sale records and summary statistics for a region and month.",
+      "parameters": [
+        {
+          "name": "region_code",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "year_month",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "100"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "DATA_GO_KR_API_KEY"
+      ]
+    },
+    {
+      "name": "get_single_house_trades",
+      "domain": "trade",
+      "module": "tools/trade.py",
+      "kind": "async",
+      "description": "Return detached and multi-unit house (단독/다가구) sale records for a region and month.",
+      "parameters": [
+        {
+          "name": "region_code",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "year_month",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "100"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "DATA_GO_KR_API_KEY"
+      ]
+    },
+    {
+      "name": "get_villa_trades",
+      "domain": "trade",
+      "module": "tools/trade.py",
+      "kind": "async",
+      "description": "Return row-house and multi-family (연립다세대) sale records for a region and month.",
+      "parameters": [
+        {
+          "name": "region_code",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "year_month",
+          "annotation": "str",
+          "default": null
+        },
+        {
+          "name": "num_of_rows",
+          "annotation": "int",
+          "default": "100"
+        }
+      ],
+      "returns": "dict[str, Any]",
+      "requires_env": [
+        "DATA_GO_KR_API_KEY"
+      ]
+    }
+  ]
+}
