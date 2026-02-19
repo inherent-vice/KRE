@@ -1,0 +1,54 @@
+services:
+  auth:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.auth
+    env_file: ../.env
+    networks:
+      - internal
+    restart: unless-stopped
+
+  mcp:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    env_file: ../.env
+    environment:
+      FORWARDED_ALLOW_IPS: "caddy"  # allow Caddy container by service name
+    networks:
+      - internal
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c",
+        "import urllib.request, json; req = urllib.request.Request('http://localhost:8000/mcp', data=json.dumps({'jsonrpc':'2.0','id':1,'method':'initialize','params':{'protocolVersion':'2024-11-05','capabilities':{},'clientInfo':{'name':'healthcheck','version':'0.1'}}}).encode(), headers={'Content-Type':'application/json','Accept':'application/json, text/event-stream'}); urllib.request.urlopen(req)"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"  # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro  # relative to docker/
+      - caddy_data:/data
+      - caddy_config:/config
+    env_file: ../.env
+    networks:
+      - internal
+    depends_on:
+      mcp:
+        condition: service_healthy
+    restart: unless-stopped
+
+networks:
+  internal:
+    # mcp is not exposed directly; only caddy reaches it
+    internal: false
+
+volumes:
+  caddy_data:
+  caddy_config:

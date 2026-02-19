@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>송파구 아파트 실거래가 지도</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Malgun Gothic', sans-serif; background: #0f172a; }
+#map { width: 100%; height: 100vh; }
+
+.info-panel {
+  position: absolute; top: 12px; right: 12px; z-index: 1000;
+  background: rgba(15,23,42,0.95); color: #e2e8f0; padding: 16px 20px;
+  border-radius: 12px; min-width: 280px; backdrop-filter: blur(8px);
+  border: 1px solid rgba(99,102,241,0.3); box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
+.info-panel h2 { font-size: 15px; color: #818cf8; margin-bottom: 10px; }
+.info-panel .stat { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.info-panel .stat:last-child { border: none; }
+.info-panel .stat .label { color: #94a3b8; }
+.info-panel .stat .value { color: #f1f5f9; font-weight: 600; }
+
+.legend {
+  position: absolute; bottom: 24px; left: 12px; z-index: 1000;
+  background: rgba(15,23,42,0.95); color: #e2e8f0; padding: 14px 18px;
+  border-radius: 12px; backdrop-filter: blur(8px);
+  border: 1px solid rgba(99,102,241,0.3);
+}
+.legend h3 { font-size: 12px; color: #818cf8; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+.legend-item { display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 12px; }
+.legend-circle { width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); }
+
+.filter-panel {
+  position: absolute; top: 12px; left: 12px; z-index: 1000;
+  background: rgba(15,23,42,0.95); color: #e2e8f0; padding: 14px 18px;
+  border-radius: 12px; backdrop-filter: blur(8px);
+  border: 1px solid rgba(99,102,241,0.3);
+}
+.filter-panel h3 { font-size: 13px; color: #818cf8; margin-bottom: 8px; }
+.filter-btn {
+  display: inline-block; padding: 5px 12px; margin: 3px 2px; border-radius: 20px;
+  font-size: 11px; cursor: pointer; border: 1px solid rgba(99,102,241,0.4);
+  background: rgba(99,102,241,0.1); color: #c7d2fe; transition: all 0.2s;
+}
+.filter-btn:hover { background: rgba(99,102,241,0.3); }
+.filter-btn.active { background: #6366f1; color: white; border-color: #6366f1; }
+
+.custom-popup .leaflet-popup-content-wrapper {
+  background: rgba(15,23,42,0.97); color: #e2e8f0; border-radius: 10px;
+  border: 1px solid rgba(99,102,241,0.3); box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+.custom-popup .leaflet-popup-tip { background: rgba(15,23,42,0.97); }
+.popup-title { font-size: 14px; font-weight: 700; color: #818cf8; margin-bottom: 6px; }
+.popup-row { display: flex; justify-content: space-between; padding: 3px 0; font-size: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.popup-row:last-child { border: none; }
+.popup-label { color: #94a3b8; }
+.popup-value { font-weight: 600; }
+.popup-value.high { color: #f87171; }
+.popup-value.mid { color: #fbbf24; }
+.popup-value.low { color: #34d399; }
+.popup-section { font-size: 11px; color: #6366f1; margin-top: 8px; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div class="filter-panel">
+  <h3>데이터 필터</h3>
+  <div>
+    <span class="filter-btn active" onclick="toggleLayer('trade', this)">매매</span>
+    <span class="filter-btn active" onclick="toggleLayer('jeonse', this)">전세</span>
+    <span class="filter-btn active" onclick="toggleLayer('wolse', this)">월세</span>
+  </div>
+  <div style="margin-top:8px">
+    <span class="filter-btn active" onclick="toggleLayer('dong', this)">동별 요약</span>
+    <span class="filter-btn" onclick="toggleLayer('individual', this)">개별 거래</span>
+  </div>
+</div>
+
+<div class="info-panel">
+  <h2>송파구 아파트 시세 현황</h2>
+  <div class="stat"><span class="label">분석 기간</span><span class="value">2025.12 ~ 2026.02</span></div>
+  <div class="stat"><span class="label">매매 중위가</span><span class="value" style="color:#f87171">16.2억원</span></div>
+  <div class="stat"><span class="label">전세 중위보증금</span><span class="value" style="color:#60a5fa">5.2억원</span></div>
+  <div class="stat"><span class="label">매매 거래건수</span><span class="value">240건</span></div>
+  <div class="stat"><span class="label">전월세 거래건수</span><span class="value">1,441건</span></div>
+  <div class="stat"><span class="label">평균 전세가율</span><span class="value" style="color:#fbbf24">~32%</span></div>
+</div>
+
+<div class="legend">
+  <h3>매매가 기준</h3>
+  <div class="legend-item"><div class="legend-circle" style="background:#dc2626"></div> 30억 이상</div>
+  <div class="legend-item"><div class="legend-circle" style="background:#f97316"></div> 20~30억</div>
+  <div class="legend-item"><div class="legend-circle" style="background:#eab308"></div> 15~20억</div>
+  <div class="legend-item"><div class="legend-circle" style="background:#22c55e"></div> 10~15억</div>
+  <div class="legend-item"><div class="legend-circle" style="background:#3b82f6"></div> 10억 미만</div>
+  <h3 style="margin-top:10px">전세</h3>
+  <div class="legend-item"><div class="legend-circle" style="background:#7c3aed; border-style:dashed"></div> 전세 보증금</div>
+  <h3 style="margin-top:10px">원 크기</h3>
+  <div class="legend-item" style="color:#94a3b8">거래건수 비례</div>
+</div>
+
+<script>
+const map = L.map('map', {
+  center: [37.5050, 127.1100],
+  zoom: 14,
+  zoomControl: false
+});
+
+L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; OpenStreetMap &copy; CARTO',
+  maxZoom: 19
+}).addTo(map);
+
+// 잠실역 마커
+L.marker([37.5133, 127.1001], {
+  icon: L.divIcon({
+    className: '',
+    html: '<div style="background:#6366f1;color:white;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap;border:2px solid #818cf8;box-shadow:0 4px 12px rgba(99,102,241,0.5)">2 잠실역</div>',
+    iconSize: [80, 28], iconAnchor: [40, 14]
+  })
+}).addTo(map);
+
+L.marker([37.5112, 127.0865], {
+  icon: L.divIcon({
+    className: '',
+    html: '<div style="background:#4f46e5;color:white;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;white-space:nowrap;border:2px solid #818cf8;box-shadow:0 4px 12px rgba(99,102,241,0.4)">2 잠실새내역</div>',
+    iconSize: [90, 26], iconAnchor: [45, 13]
+  })
+}).addTo(map);
+
+// 동별 좌표
+const dongCoords = {
+  "잠실동": [37.5133, 127.0850],
+  "신천동": [37.5155, 127.0950],
+  "풍납동": [37.5280, 127.1130],
+  "송파동": [37.5048, 127.1060],
+  "석촌동": [37.5065, 127.0970],
+  "삼전동": [37.5030, 127.0900],
+  "가락동": [37.4960, 127.1180],
+  "문정동": [37.4870, 127.1250],
+  "장지동": [37.4750, 127.1280],
+  "방이동": [37.5140, 127.1220],
+  "오금동": [37.5010, 127.1350],
+  "거여동": [37.4940, 127.1440],
+  "마천동": [37.4960, 127.1510]
+};
+
+// 매매 데이터
+const tradeByDong = {
+  "잠실동": { count: 30, median: 345000, min: 130000, max: 545000, med84: 335000, apts: "잠실엘스, 리센츠, 트리지움, 주공5단지, 레이크팰리스, 우성, 갤러리아팰리스" },
+  "신천동": { count: 28, median: 296000, min: 87500, max: 389000, med84: 298000, apts: "파크리오, 장미1·2, 롯데캐슬골드, 잠실더샵스타파크, 한신잠실코아" },
+  "가락동": { count: 30, median: 159000, min: 19300, max: 450000, med84: 200000, apts: "헬리오시티, 우성, 가락쌍용, 가락금호" },
+  "풍납동": { count: 28, median: 145000, min: 60000, max: 225000, med84: 144000, apts: "현대1, 동아한가람, 현대리버빌, 극동, 잠실올림픽공원아이파크" },
+  "송파동": { count: 12, median: 150000, min: 36500, max: 270000, med84: 220000, apts: "가락삼익맨숀, 한양, 미성맨션, SK, 호수임광" },
+  "방이동": { count: 12, median: 205000, min: 37000, max: 325000, med84: 249300, apts: "올림픽선수기자촌, 대림, 코오롱, 방이금호어울림" },
+  "오금동": { count: 14, median: 165000, min: 119000, max: 291500, med84: 171300, apts: "현대(2-4차), 대림, 상아2차, 송파두산위브" },
+  "문정동": { count: 22, median: 158000, min: 73000, max: 277000, med84: 185000, apts: "파크하비오, 올림픽훼밀리타운, 건영1, 문정래미안" },
+  "거여동": { count: 30, median: 126000, min: 72000, max: 226000, med84: 199000, apts: "송파시그니처롯데캐슬, e편한세상, 호반써밋, 거여1·4단지" },
+  "장지동": { count: 16, median: 163000, min: 137250, max: 199500, med84: 185000, apts: "송파파인타운, 위례24단지, 송파더센트레" },
+  "석촌동": { count: 6, median: 158500, min: 25700, max: 215000, med84: 0, apts: "잠실한솔, 미켈란호수가, 석촌호수해링턴타워" },
+  "마천동": { count: 8, median: 99000, min: 64000, max: 137000, med84: 99000, apts: "삼익1, 마천금호어울림, 송파파크데일, 신동아" },
+  "삼전동": { count: 2, median: 64750, min: 54500, max: 75000, med84: 0, apts: "동승, 동신" }
+};
+
+// 전세 데이터
+const jeonseByDong = {
+  "잠실동": { count: 42, median: 72000, apts: "잠실엘스 6.8억, 리센츠 6.5억, 트리지움 6.2억" },
+  "신천동": { count: 38, median: 55000, apts: "파크리오 5.5억, 장미 4.5억, 롯데캐슬골드 5억" },
+  "가락동": { count: 55, median: 45000, apts: "헬리오시티 5.8억, 가락쌍용 3.5억" },
+  "풍납동": { count: 50, median: 35000, apts: "현대1 3.5억, 동아한가람 3.2억, 올림픽공원아이파크 4.8억" },
+  "송파동": { count: 25, median: 32000, apts: "가락삼익맨숀 3.5억, 한양 3억" },
+  "방이동": { count: 28, median: 45000, apts: "올림픽선수기자촌 5.5억, 코오롱 3.8억" },
+  "오금동": { count: 30, median: 38000, apts: "현대 3.8억, 대림 3.5억" },
+  "문정동": { count: 35, median: 42000, apts: "파크하비오 4.5억, 올림픽훼밀리타운 4.2억" },
+  "거여동": { count: 45, median: 30000, apts: "롯데캐슬 3.8억, e편한세상 3.5억, 거여단지 2.5억" },
+  "장지동": { count: 30, median: 40000, apts: "송파파인타운 3.8억, 위례24단지 3억" },
+  "석촌동": { count: 12, median: 35000, apts: "잠실한솔 3.5억" },
+  "마천동": { count: 18, median: 22000, apts: "삼익1 2.2억, 금호어울림 2.5억" },
+  "삼전동": { count: 8, median: 28000, apts: "동승, 동신" }
+};
+
+function getPriceColor(price10k) {
+  if (price10k >= 300000) return '#dc2626';
+  if (price10k >= 200000) return '#f97316';
+  if (price10k >= 150000) return '#eab308';
+  if (price10k >= 100000) return '#22c55e';
+  return '#3b82f6';
+}
+
+function formatPrice(price10k) {
+  return (price10k / 10000).toFixed(1) + '억';
+}
+
+function priceClass(price10k) {
+  if (price10k >= 300000) return 'high';
+  if (price10k >= 150000) return 'mid';
+  return 'low';
+}
+
+// 레이어 그룹
+const tradeDongLayer = L.layerGroup();
+const jeonseDongLayer = L.layerGroup();
+const wolseDongLayer = L.layerGroup();
+const individualLayer = L.layerGroup();
+
+// 동별 매매 원
+Object.entries(tradeByDong).forEach(([dong, data]) => {
+  const coords = dongCoords[dong];
+  if (!coords) return;
+  const color = getPriceColor(data.median);
+  const radius = Math.max(180, Math.sqrt(data.count) * 80);
+
+  const circle = L.circle(coords, {
+    radius: radius,
+    fillColor: color,
+    fillOpacity: 0.5,
+    color: color,
+    weight: 2,
+    opacity: 0.8
+  });
+
+  const jeonse = jeonseByDong[dong] || { count: 0, median: 0 };
+  const gapRatio = data.median > 0 ? ((jeonse.median / data.median) * 100).toFixed(1) : '-';
+
+  circle.bindPopup(`
+    <div class="popup-title">${dong}</div>
+    <div class="popup-section">매매</div>
+    <div class="popup-row"><span class="popup-label">거래건수</span><span class="popup-value">${data.count}건</span></div>
+    <div class="popup-row"><span class="popup-label">중위가</span><span class="popup-value ${priceClass(data.median)}">${formatPrice(data.median)}</span></div>
+    <div class="popup-row"><span class="popup-label">84m² 중위</span><span class="popup-value ${priceClass(data.med84)}">${data.med84 ? formatPrice(data.med84) : 'N/A'}</span></div>
+    <div class="popup-row"><span class="popup-label">가격범위</span><span class="popup-value">${formatPrice(data.min)} ~ ${formatPrice(data.max)}</span></div>
+    <div class="popup-section">전세</div>
+    <div class="popup-row"><span class="popup-label">전세건수</span><span class="popup-value">${jeonse.count}건</span></div>
+    <div class="popup-row"><span class="popup-label">전세 중위</span><span class="popup-value" style="color:#a78bfa">${formatPrice(jeonse.median)}</span></div>
+    <div class="popup-row"><span class="popup-label">전세가율</span><span class="popup-value" style="color:${parseFloat(gapRatio)>=60?'#f87171':parseFloat(gapRatio)>=40?'#fbbf24':'#34d399'}">${gapRatio}%</span></div>
+    <div class="popup-section">주요 단지</div>
+    <div style="font-size:11px;color:#94a3b8;line-height:1.5">${data.apts}</div>
+  `, { className: 'custom-popup', maxWidth: 260 });
+
+  // 동 이름 라벨
+  const label = L.marker(coords, {
+    icon: L.divIcon({
+      className: '',
+      html: `<div style="color:white;font-size:11px;font-weight:700;text-shadow:0 1px 4px rgba(0,0,0,0.8);text-align:center;pointer-events:none">${dong}<br><span style="font-size:13px;color:${color}">${formatPrice(data.median)}</span></div>`,
+      iconSize: [80, 36], iconAnchor: [40, 18]
+    }),
+    interactive: false
+  });
+
+  tradeDongLayer.addLayer(circle);
+  tradeDongLayer.addLayer(label);
+});
+
+// 동별 전세 원 (매매 원 안쪽에 작게)
+Object.entries(jeonseByDong).forEach(([dong, data]) => {
+  const coords = dongCoords[dong];
+  if (!coords) return;
+  const radius = Math.max(100, Math.sqrt(data.count) * 50);
+
+  const circle = L.circle([coords[0] - 0.0008, coords[1] + 0.0008], {
+    radius: radius,
+    fillColor: '#7c3aed',
+    fillOpacity: 0.35,
+    color: '#7c3aed',
+    weight: 2,
+    opacity: 0.6,
+    dashArray: '5,5'
+  });
+
+  circle.bindPopup(`
+    <div class="popup-title">${dong} 전세</div>
+    <div class="popup-row"><span class="popup-label">전세건수</span><span class="popup-value">${data.count}건</span></div>
+    <div class="popup-row"><span class="popup-label">중위보증금</span><span class="popup-value" style="color:#a78bfa">${formatPrice(data.median)}</span></div>
+    <div class="popup-section">주요 단지 전세</div>
+    <div style="font-size:11px;color:#94a3b8;line-height:1.5">${data.apts}</div>
+  `, { className: 'custom-popup', maxWidth: 240 });
+
+  jeonseDongLayer.addLayer(circle);
+});
+
+// 개별 거래 마커 (주요 단지)
+const individualTrades = [
+  { name: "잠실엘스", dong: "잠실동", lat: 37.5108, lng: 127.0830, price: 345000, area: 84.8, type: "매매" },
+  { name: "잠실엘스", dong: "잠실동", lat: 37.5108, lng: 127.0830, price: 460000, area: 119.9, type: "매매" },
+  { name: "리센츠", dong: "잠실동", lat: 37.5120, lng: 127.0870, price: 470000, area: 124.2, type: "매매" },
+  { name: "리센츠", dong: "잠실동", lat: 37.5120, lng: 127.0870, price: 330000, area: 84.9, type: "매매" },
+  { name: "트리지움", dong: "잠실동", lat: 37.5098, lng: 127.0860, price: 335000, area: 84.8, type: "매매" },
+  { name: "주공5단지", dong: "잠실동", lat: 37.5170, lng: 127.0840, price: 462500, area: 82.5, type: "매매" },
+  { name: "주공5단지", dong: "잠실동", lat: 37.5170, lng: 127.0840, price: 424700, area: 76.5, type: "매매" },
+  { name: "레이크팰리스", dong: "잠실동", lat: 37.5145, lng: 127.0820, price: 330000, area: 84.8, type: "매매" },
+  { name: "갤러리아팰리스", dong: "잠실동", lat: 37.5155, lng: 127.0830, price: 376000, area: 163.9, type: "매매" },
+  { name: "아시아선수촌", dong: "잠실동", lat: 37.5160, lng: 127.0850, price: 545000, area: 151, type: "매매" },
+  { name: "파크리오", dong: "신천동", lat: 37.5170, lng: 127.0960, price: 305000, area: 84.9, type: "매매" },
+  { name: "파크리오", dong: "신천동", lat: 37.5170, lng: 127.0960, price: 354000, area: 121.6, type: "매매" },
+  { name: "장미1", dong: "신천동", lat: 37.5140, lng: 127.0920, price: 389000, area: 120, type: "매매" },
+  { name: "장미2", dong: "신천동", lat: 37.5135, lng: 127.0930, price: 380000, area: 120, type: "매매" },
+  { name: "롯데캐슬골드", dong: "신천동", lat: 37.5160, lng: 127.0940, price: 335000, area: 166.7, type: "매매" },
+  { name: "헬리오시티", dong: "가락동", lat: 37.4970, lng: 127.1270, price: 450000, area: 150, type: "매매" },
+  { name: "헬리오시티", dong: "가락동", lat: 37.4970, lng: 127.1270, price: 314000, area: 84.9, type: "매매" },
+  { name: "헬리오시티", dong: "가락동", lat: 37.4970, lng: 127.1270, price: 291000, area: 84.9, type: "매매" },
+  { name: "올림픽선수기자촌", dong: "방이동", lat: 37.5165, lng: 127.1200, price: 320000, area: 100.3, type: "매매" },
+  { name: "올림픽훼밀리타운", dong: "문정동", lat: 37.4890, lng: 127.1220, price: 277000, area: 117.5, type: "매매" },
+  { name: "잠실올림픽공원아이파크", dong: "풍납동", lat: 37.5230, lng: 127.1160, price: 225000, area: 84.9, type: "매매" },
+];
+
+individualTrades.forEach(t => {
+  const color = getPriceColor(t.price);
+  const marker = L.circleMarker([t.lat + (Math.random()-0.5)*0.001, t.lng + (Math.random()-0.5)*0.001], {
+    radius: 6, fillColor: color, fillOpacity: 0.8, color: '#fff', weight: 1, opacity: 0.6
+  });
+  marker.bindPopup(`
+    <div class="popup-title">${t.name}</div>
+    <div class="popup-row"><span class="popup-label">위치</span><span class="popup-value">${t.dong}</span></div>
+    <div class="popup-row"><span class="popup-label">거래가</span><span class="popup-value ${priceClass(t.price)}">${formatPrice(t.price)}</span></div>
+    <div class="popup-row"><span class="popup-label">면적</span><span class="popup-value">${t.area}m²</span></div>
+    <div class="popup-row"><span class="popup-label">유형</span><span class="popup-value">${t.type}</span></div>
+  `, { className: 'custom-popup', maxWidth: 220 });
+  individualLayer.addLayer(marker);
+});
+
+// 기본 레이어 추가
+tradeDongLayer.addTo(map);
+jeonseDongLayer.addTo(map);
+
+const layers = {
+  trade: { layer: tradeDongLayer, active: true },
+  jeonse: { layer: jeonseDongLayer, active: true },
+  wolse: { layer: wolseDongLayer, active: true },
+  dong: { layer: null, active: true },
+  individual: { layer: individualLayer, active: false }
+};
+
+function toggleLayer(name, btn) {
+  const info = layers[name];
+  if (name === 'individual') {
+    if (info.active) {
+      map.removeLayer(info.layer);
+      btn.classList.remove('active');
+    } else {
+      info.layer.addTo(map);
+      btn.classList.add('active');
+    }
+    info.active = !info.active;
+    return;
+  }
+  if (info.layer) {
+    if (info.active) {
+      map.removeLayer(info.layer);
+      btn.classList.remove('active');
+    } else {
+      info.layer.addTo(map);
+      btn.classList.add('active');
+    }
+    info.active = !info.active;
+  }
+}
+</script>
+</body>
+</html>

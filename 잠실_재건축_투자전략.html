@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>잠실 재건축 투자 전략 리포트 2026</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;700;900&family=Noto+Sans+KR:wght@300;400;500;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+--bg:#0a0b0f;--bg2:#12131a;--bg3:#1a1c26;--bg4:#222433;
+--gold:#c9a84c;--gold-light:#e8d48b;--gold-dim:#8a7033;
+--blue:#3a6fd8;--blue-light:#5b8def;--blue-dim:#1e3a6e;
+--red:#d94452;--green:#2ecc71;--green-dim:#1a7a42;
+--text:#e8e6e0;--text-dim:#8b8a85;--text-muted:#5a5955;
+--border:rgba(201,168,76,.15);--border2:rgba(201,168,76,.08);
+--font-display:'Playfair Display','Noto Serif KR',serif;
+--font-body:'Noto Sans KR',sans-serif;
+--font-serif:'Noto Serif KR',serif;
+}
+html{scroll-behavior:smooth;font-size:16px}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);line-height:1.7;overflow-x:hidden}
+::selection{background:var(--gold);color:var(--bg)}
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:var(--bg2)}
+::-webkit-scrollbar-thumb{background:var(--gold-dim);border-radius:3px}
+
+.noise{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:9999;opacity:.03;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(10,11,15,.85);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;transition:transform .3s}
+nav .logo{font-family:var(--font-display);font-size:1.1rem;color:var(--gold);letter-spacing:.02em}
+nav .nav-links{display:flex;gap:1.5rem}
+nav .nav-links a{color:var(--text-dim);text-decoration:none;font-size:.8rem;font-weight:500;letter-spacing:.05em;text-transform:uppercase;transition:color .3s}
+nav .nav-links a:hover{color:var(--gold)}
+
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:6rem 2rem 4rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at 30% 50%,rgba(58,111,216,.08) 0%,transparent 50%),radial-gradient(ellipse at 70% 30%,rgba(201,168,76,.06) 0%,transparent 50%);animation:heroGlow 8s ease-in-out infinite alternate}
+@keyframes heroGlow{0%{transform:translate(0,0)}100%{transform:translate(-2%,1%)}}
+.hero-badge{display:inline-flex;align-items:center;gap:.5rem;padding:.4rem 1.2rem;border:1px solid var(--border);border-radius:100px;font-size:.75rem;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:2rem;background:rgba(201,168,76,.05)}
+.hero-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.hero h1{font-family:var(--font-display);font-size:clamp(2.5rem,6vw,5rem);font-weight:900;line-height:1.1;margin-bottom:1rem;background:linear-gradient(135deg,var(--gold-light) 0%,var(--gold) 40%,var(--gold-dim) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero .subtitle{font-family:var(--font-serif);font-size:clamp(1rem,2vw,1.3rem);color:var(--text-dim);font-weight:400;max-width:600px;margin-bottom:3rem}
+.hero .date-info{font-size:.85rem;color:var(--text-muted);letter-spacing:.05em}
+
+.section{padding:6rem 2rem;max-width:1280px;margin:0 auto;position:relative}
+.section-label{display:inline-flex;align-items:center;gap:.5rem;font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--gold);margin-bottom:1rem;font-weight:500}
+.section-label::before{content:'';width:20px;height:1px;background:var(--gold)}
+.section-title{font-family:var(--font-display);font-size:clamp(1.8rem,3.5vw,2.8rem);font-weight:700;margin-bottom:.5rem;color:var(--text)}
+.section-desc{color:var(--text-dim);font-size:.95rem;margin-bottom:3rem;max-width:700px}
+
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.5rem;margin-bottom:4rem}
+.summary-card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:2rem;position:relative;overflow:hidden;transition:transform .3s,border-color .3s}
+.summary-card:hover{transform:translateY(-4px);border-color:var(--gold-dim)}
+.summary-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent)}
+.summary-card .card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;margin-bottom:1rem}
+.summary-card .card-icon.gold{background:rgba(201,168,76,.12);color:var(--gold)}
+.summary-card .card-icon.blue{background:rgba(58,111,216,.12);color:var(--blue-light)}
+.summary-card .card-icon.green{background:rgba(46,204,113,.12);color:var(--green)}
+.summary-card .card-icon.red{background:rgba(217,68,82,.12);color:var(--red)}
+.summary-card .card-value{font-family:var(--font-display);font-size:2.2rem;font-weight:900;color:var(--text);line-height:1.2;margin-bottom:.3rem}
+.summary-card .card-label{font-size:.85rem;color:var(--text-dim)}
+
+.complex-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:1.5rem}
+.complex-card{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;overflow:hidden;transition:transform .3s,border-color .3s}
+.complex-card:hover{transform:translateY(-3px);border-color:var(--gold-dim)}
+.complex-card .card-header{padding:1.5rem 1.5rem 1rem;display:flex;justify-content:space-between;align-items:flex-start}
+.complex-card .card-header h3{font-family:var(--font-serif);font-size:1.15rem;font-weight:700;color:var(--text)}
+.complex-card .card-header .rank{font-family:var(--font-display);font-size:1.8rem;font-weight:900;color:var(--gold);opacity:.6;line-height:1}
+.complex-card .card-body{padding:0 1.5rem 1.5rem}
+.complex-card .meta{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem}
+.complex-card .meta .tag{padding:.2rem .6rem;border-radius:6px;font-size:.7rem;font-weight:500;letter-spacing:.02em}
+.tag-stage{background:rgba(58,111,216,.15);color:var(--blue-light)}
+.tag-builder{background:rgba(201,168,76,.12);color:var(--gold)}
+.tag-done{background:rgba(46,204,113,.12);color:var(--green)}
+.tag-warn{background:rgba(217,68,82,.12);color:var(--red)}
+.complex-card .stats{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1rem}
+.complex-card .stat{padding:.6rem;background:var(--bg3);border-radius:8px}
+.complex-card .stat .stat-label{font-size:.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em}
+.complex-card .stat .stat-value{font-size:1rem;font-weight:700;color:var(--text);margin-top:.15rem}
+.progress-wrap{margin-bottom:.8rem}
+.progress-label{display:flex;justify-content:space-between;font-size:.75rem;color:var(--text-dim);margin-bottom:.4rem}
+.progress-bar{height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--blue),var(--gold));transition:width 1.5s ease}
+.stars{color:var(--gold);font-size:.9rem;letter-spacing:2px}
+.stars .empty{opacity:.2}
+
+.chart-section{display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+@media(max-width:900px){.chart-section{grid-template-columns:1fr}}
+.chart-box{background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:2rem;overflow:hidden}
+.chart-box h4{font-family:var(--font-serif);font-size:1rem;margin-bottom:1.5rem;color:var(--text)}
+.bar-chart{display:flex;flex-direction:column;gap:1rem}
+.bar-item{display:flex;align-items:center;gap:1rem}
+.bar-item .bar-label{min-width:110px;font-size:.8rem;color:var(--text-dim);text-align:right}
+.bar-item .bar-track{flex:1;height:28px;background:var(--bg4);border-radius:6px;overflow:hidden;position:relative}
+.bar-item .bar-fill{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:.8rem;font-size:.75rem;font-weight:700;color:var(--bg);transition:width 1.5s ease;position:relative}
+.bar-fill.gold-bar{background:linear-gradient(90deg,var(--gold-dim),var(--gold))}
+.bar-fill.blue-bar{background:linear-gradient(90deg,var(--blue-dim),var(--blue-light))}
+.bar-fill.green-bar{background:linear-gradient(90deg,var(--green-dim),var(--green))}
+.bar-fill.red-bar{background:linear-gradient(90deg,#8b2030,var(--red))}
+.bar-item .bar-val{min-width:70px;font-size:.85rem;font-weight:700;color:var(--text)}
+
+.timeline{position:relative;padding:2rem 0}
+.timeline::before{content:'';position:absolute;left:50%;top:0;bottom:0;width:2px;background:linear-gradient(180deg,transparent,var(--gold-dim),var(--gold),var(--gold-dim),transparent);transform:translateX(-50%)}
+@media(max-width:768px){.timeline::before{left:20px}}
+.tl-item{display:flex;align-items:flex-start;margin-bottom:3rem;position:relative}
+.tl-item:nth-child(odd){flex-direction:row-reverse;text-align:right}
+@media(max-width:768px){.tl-item,.tl-item:nth-child(odd){flex-direction:row;text-align:left}}
+.tl-content{flex:1;padding:0 2.5rem}
+.tl-dot{width:16px;height:16px;border-radius:50%;border:3px solid var(--gold);background:var(--bg);position:relative;z-index:2;flex-shrink:0;margin-top:.3rem}
+.tl-dot.active{background:var(--gold);box-shadow:0 0 20px rgba(201,168,76,.4)}
+.tl-year{font-family:var(--font-display);font-size:1.8rem;font-weight:900;color:var(--gold);margin-bottom:.3rem}
+.tl-events{list-style:none;display:flex;flex-direction:column;gap:.4rem}
+.tl-events li{font-size:.88rem;color:var(--text-dim);padding:.3rem .6rem;background:var(--bg2);border-radius:6px;border:1px solid var(--border2);display:inline-block}
+
+#map{height:500px;border-radius:16px;border:1px solid var(--border2);z-index:1}
+.leaflet-popup-content-wrapper{background:var(--bg2)!important;color:var(--text)!important;border:1px solid var(--border)!important;border-radius:12px!important;box-shadow:0 10px 40px rgba(0,0,0,.5)!important}
+.leaflet-popup-tip{background:var(--bg2)!important}
+.leaflet-popup-content{font-family:var(--font-body)!important;font-size:.85rem!important;line-height:1.6!important}
+.leaflet-popup-content .popup-title{font-family:var(--font-serif);font-weight:700;font-size:1rem;color:var(--gold);margin-bottom:.3rem}
+.leaflet-popup-content .popup-price{font-size:1.1rem;font-weight:700;color:var(--text)}
+.leaflet-popup-content .popup-stage{font-size:.75rem;color:var(--blue-light);margin-top:.2rem}
+
+.policy-table{width:100%;border-collapse:collapse;background:var(--bg2);border-radius:16px;overflow:hidden;border:1px solid var(--border2)}
+.policy-table th{background:var(--bg3);padding:1rem 1.2rem;text-align:left;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:500;border-bottom:1px solid var(--border)}
+.policy-table td{padding:.9rem 1.2rem;border-bottom:1px solid var(--border2);font-size:.88rem;color:var(--text-dim)}
+.policy-table tr:last-child td{border-bottom:none}
+.policy-table tr:hover td{background:rgba(201,168,76,.03)}
+.policy-table .status-chip{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600}
+.chip-danger{background:rgba(217,68,82,.15);color:var(--red)}
+.chip-warning{background:rgba(201,168,76,.15);color:var(--gold)}
+.chip-info{background:rgba(58,111,216,.15);color:var(--blue-light)}
+
+.risk-matrix{display:grid;grid-template-columns:auto repeat(3,1fr);grid-template-rows:auto repeat(3,1fr);gap:4px;max-width:700px;margin:0 auto}
+.risk-matrix .axis-label{font-size:.7rem;color:var(--text-muted);display:flex;align-items:center;justify-content:center;padding:.5rem;text-transform:uppercase;letter-spacing:.05em}
+.risk-matrix .axis-label.y-label{writing-mode:vertical-rl;transform:rotate(180deg)}
+.risk-cell{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:1rem;min-height:100px;display:flex;flex-direction:column;gap:.4rem;transition:background .3s}
+.risk-cell:hover{background:var(--bg3)}
+.risk-cell.high-risk{border-color:rgba(217,68,82,.3)}
+.risk-cell.mid-risk{border-color:rgba(201,168,76,.3)}
+.risk-cell.low-risk{border-color:rgba(46,204,113,.2)}
+.risk-tag{font-size:.7rem;padding:.2rem .5rem;border-radius:4px;display:inline-block;width:fit-content}
+.risk-tag.rtag-high{background:rgba(217,68,82,.15);color:var(--red)}
+.risk-tag.rtag-mid{background:rgba(201,168,76,.15);color:var(--gold)}
+.risk-tag.rtag-low{background:rgba(46,204,113,.12);color:var(--green)}
+.risk-axis-header{font-size:.75rem;font-weight:600;color:var(--text-dim);text-align:center;padding:.5rem}
+
+.verdict-box{background:linear-gradient(135deg,var(--bg2) 0%,rgba(201,168,76,.05) 100%);border:1px solid var(--border);border-radius:20px;padding:3rem;text-align:center;max-width:900px;margin:0 auto}
+.verdict-box .verdict-rank{font-family:var(--font-display);font-size:1.2rem;color:var(--gold);margin-bottom:2rem;letter-spacing:.05em}
+.verdict-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.5rem;margin-bottom:2.5rem;text-align:left}
+.verdict-item{padding:1.2rem;background:var(--bg3);border-radius:12px;border:1px solid var(--border2)}
+.verdict-item .v-rank{font-family:var(--font-display);font-size:2rem;font-weight:900;color:var(--gold);opacity:.5}
+.verdict-item .v-name{font-family:var(--font-serif);font-size:1rem;font-weight:700;margin:.3rem 0}
+.verdict-item .v-return{font-size:.85rem;color:var(--green);font-weight:700}
+.verdict-item .v-reason{font-size:.75rem;color:var(--text-dim);margin-top:.3rem}
+.verdict-note{font-size:.9rem;color:var(--text-dim);line-height:1.8;max-width:700px;margin:0 auto;text-align:left;padding:1.5rem;background:var(--bg3);border-radius:12px;border-left:3px solid var(--gold)}
+
+footer{padding:3rem 2rem;text-align:center;border-top:1px solid var(--border2);color:var(--text-muted);font-size:.8rem}
+footer .disclaimer{max-width:700px;margin:0 auto;line-height:1.7}
+
+.fade-in{opacity:0;transform:translateY(30px);transition:opacity .8s ease,transform .8s ease}
+.fade-in.visible{opacity:1;transform:translateY(0)}
+
+@media(max-width:768px){
+.section{padding:4rem 1rem}
+.summary-grid{grid-template-columns:1fr 1fr}
+.complex-grid{grid-template-columns:1fr}
+.chart-section{grid-template-columns:1fr}
+nav .nav-links{display:none}
+.hero h1{font-size:2rem}
+}
+@media(max-width:480px){
+.summary-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<nav>
+<div class="logo">JR INVEST</div>
+<div class="nav-links">
+<a href="#summary">요약</a>
+<a href="#complexes">단지분석</a>
+<a href="#returns">수익성</a>
+<a href="#timeline">타임라인</a>
+<a href="#map-section">지도</a>
+<a href="#policy">정책</a>
+<a href="#risk">리스크</a>
+<a href="#verdict">최종판단</a>
+</div>
+</nav>
+
+<section class="hero">
+<div class="hero-badge"><span class="dot"></span> LIVE DATA — 2026.02.19 기준</div>
+<h1>잠실 재건축<br>투자 전략 리포트</h1>
+<p class="subtitle">6개 전문 AI 에이전트의 병렬 심층 분석을 통합한<br>데이터 기반 재건축 투자 전략 보고서</p>
+<p class="date-info">분석 기간: 2025.12 — 2026.02 &nbsp;|&nbsp; 데이터: 국토교통부 실거래가 API &nbsp;|&nbsp; 분석 에이전트: 6개</p>
+</section>
+
+<section class="section fade-in" id="summary">
+<div class="section-label">Executive Summary</div>
+<h2 class="section-title">핵심 투자 지표</h2>
+<p class="section-desc">잠실 재건축 권역 4개 핵심 단지 + 주변 신축 단지의 종합 데이터 분석 결과입니다.</p>
+<div class="summary-grid">
+<div class="summary-card">
+<div class="card-icon gold">&#9670;</div>
+<div class="card-value">6개</div>
+<div class="card-label">분석 대상 재건축 단지</div>
+</div>
+<div class="summary-card">
+<div class="card-icon green">&#9650;</div>
+<div class="card-value">8~10%</div>
+<div class="card-label">최고 예상 연환산 수익률 (우성4차)</div>
+</div>
+<div class="summary-card">
+<div class="card-icon blue">&#9679;</div>
+<div class="card-value">7.2조+</div>
+<div class="card-label">잠실권 총 개발사업비 (MICE+GBC+탄천)</div>
+</div>
+<div class="summary-card">
+<div class="card-icon red">&#9888;</div>
+<div class="card-value">20%+</div>
+<div class="card-label">2025년 송파구 아파트 상승률 (강남3구 1위)</div>
+</div>
+</div>
+</section>
+
+<section class="section fade-in" id="complexes">
+<div class="section-label">Complex Analysis</div>
+<h2 class="section-title">재건축 단지 심층 비교</h2>
+<p class="section-desc">전문가 분석 기반 투자 매력도 순위 및 각 단지의 핵심 지표를 비교합니다.</p>
+<div class="complex-grid">
+
+<div class="complex-card">
+<div class="card-header"><h3>우성 4차</h3><div class="rank">#1</div></div>
+<div class="card-body">
+<div class="meta">
+<span class="tag tag-done">관리처분 의결 완료</span>
+<span class="tag tag-builder">DL이앤씨</span>
+</div>
+<div class="stats">
+<div class="stat"><div class="stat-label">현재 시세</div><div class="stat-value">25~28억</div></div>
+<div class="stat"><div class="stat-label">예상 완공 시세</div><div class="stat-value">35~40억</div></div>
+<div class="stat"><div class="stat-label">투자기간</div><div class="stat-value">3~4년</div></div>
+<div class="stat"><div class="stat-label">예상 차익</div><div class="stat-value" style="color:var(--green)">10~12억</div></div>
+</div>
+<div class="progress-wrap">
+<div class="progress-label"><span>사업 진행도</span><span>75%</span></div>
+<div class="progress-bar"><div class="progress-fill" style="width:0%" data-width="75%"></div></div>
+</div>
+<div>연환산 수익률 <strong style="color:var(--green)">8~10%</strong> &nbsp; 매력도 <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span></div>
+</div>
+</div>
+
+<div class="complex-card">
+<div class="card-header"><h3>장미 1/2/3차</h3><div class="rank">#2</div></div>
+<div class="card-body">
+<div class="meta">
+<span class="tag tag-stage">정비계획 협의중</span>
+<span class="tag tag-warn">시공사 미선정</span>
+</div>
+<div class="stats">
+<div class="stat"><div class="stat-label">현재 시세</div><div class="stat-value">30~33억</div></div>
+<div class="stat"><div class="stat-label">예상 완공 시세</div><div class="stat-value">40~50억</div></div>
+<div class="stat"><div class="stat-label">투자기간</div><div class="stat-value">5~6년</div></div>
+<div class="stat"><div class="stat-label">예상 차익</div><div class="stat-value" style="color:var(--green)">10~15억</div></div>
+</div>
+<div class="progress-wrap">
+<div class="progress-label"><span>사업 진행도</span><span>35%</span></div>
+<div class="progress-bar"><div class="progress-fill" style="width:0%" data-width="35%"></div></div>
+</div>
+<div>연환산 수익률 <strong style="color:var(--green)">5~8%</strong> &nbsp; 매력도 <span class="stars">&#9733;&#9733;&#9733;&#9733;<span class="empty">&#9733;</span></span></div>
+</div>
+</div>
+
+<div class="complex-card">
+<div class="card-header"><h3>우성 1/2/3차<br><small style="color:var(--text-muted);font-size:.75rem">잠실 자이 리비에르</small></h3><div class="rank">#3</div></div>
+<div class="card-body">
+<div class="meta">
+<span class="tag tag-done">시공사 확정</span>
+<span class="tag tag-builder">GS건설</span>
+</div>
+<div class="stats">
+<div class="stat"><div class="stat-label">현재 시세</div><div class="stat-value">33~35억</div></div>
+<div class="stat"><div class="stat-label">예상 완공 시세</div><div class="stat-value">35~45억</div></div>
+<div class="stat"><div class="stat-label">투자기간</div><div class="stat-value">6~7년</div></div>
+<div class="stat"><div class="stat-label">예상 차익</div><div class="stat-value" style="color:var(--green)">10~15억</div></div>
+</div>
+<div class="progress-wrap">
+<div class="progress-label"><span>사업 진행도</span><span>50%</span></div>
+<div class="progress-bar"><div class="progress-fill" style="width:0%" data-width="50%"></div></div>
+</div>
+<div>연환산 수익률 <strong style="color:var(--green)">5~7%</strong> &nbsp; 매력도 <span class="stars">&#9733;&#9733;&#9733;&#9733;<span class="empty">&#9733;</span></span></div>
+</div>
+</div>
+
+<div class="complex-card">
+<div class="card-header"><h3>잠실주공 5단지</h3><div class="rank">#4</div></div>
+<div class="card-body">
+<div class="meta">
+<span class="tag tag-stage">사업시행인가 신청</span>
+<span class="tag tag-builder">삼성물산/GS/HDC</span>
+</div>
+<div class="stats">
+<div class="stat"><div class="stat-label">현재 시세</div><div class="stat-value">43~45억</div></div>
+<div class="stat"><div class="stat-label">예상 완공 시세</div><div class="stat-value">50~55억+</div></div>
+<div class="stat"><div class="stat-label">투자기간</div><div class="stat-value">4~5년</div></div>
+<div class="stat"><div class="stat-label">예상 차익</div><div class="stat-value" style="color:var(--gold)">0~5억</div></div>
+</div>
+<div class="progress-wrap">
+<div class="progress-label"><span>사업 진행도</span><span>60%</span></div>
+<div class="progress-bar"><div class="progress-fill" style="width:0%" data-width="60%"></div></div>
+</div>
+<div>연환산 수익률 <strong style="color:var(--gold)">0~2%</strong> &nbsp; 매력도 <span class="stars">&#9733;&#9733;&#9733;<span class="empty">&#9733;&#9733;</span></span></div>
+</div>
+</div>
+
+</div>
+</section>
+
+<section class="section fade-in" id="returns">
+<div class="section-label">Return Simulation</div>
+<h2 class="section-title">투자 수익성 시뮬레이션</h2>
+<p class="section-desc">각 단지별 총 투자비용 대비 예상 차익과 강남3구 재건축 시세 비교입니다.</p>
+<div class="chart-section">
+<div class="chart-box">
+<h4>단지별 연환산 수익률 비교</h4>
+<div class="bar-chart">
+<div class="bar-item"><span class="bar-label">우성 4차</span><div class="bar-track"><div class="bar-fill green-bar" style="width:0%" data-width="90%"></div></div><span class="bar-val">8~10%</span></div>
+<div class="bar-item"><span class="bar-label">장미 1/2차</span><div class="bar-track"><div class="bar-fill blue-bar" style="width:0%" data-width="65%"></div></div><span class="bar-val">5~8%</span></div>
+<div class="bar-item"><span class="bar-label">우성 1/2/3차</span><div class="bar-track"><div class="bar-fill blue-bar" style="width:0%" data-width="60%"></div></div><span class="bar-val">5~7%</span></div>
+<div class="bar-item"><span class="bar-label">잠실주공5단지</span><div class="bar-track"><div class="bar-fill gold-bar" style="width:0%" data-width="20%"></div></div><span class="bar-val">0~2%</span></div>
+</div>
+</div>
+<div class="chart-box">
+<h4>강남3구 재건축 시세 비교 (84m²)</h4>
+<div class="bar-chart">
+<div class="bar-item"><span class="bar-label">래미안원베일리</span><div class="bar-track"><div class="bar-fill gold-bar" style="width:0%" data-width="100%">72.5억</div></div><span class="bar-val">72.5억</span></div>
+<div class="bar-item"><span class="bar-label">압구정 현대</span><div class="bar-track"><div class="bar-fill gold-bar" style="width:0%" data-width="79%"></div></div><span class="bar-val">57.5억</span></div>
+<div class="bar-item"><span class="bar-label">잠실 르엘</span><div class="bar-track"><div class="bar-fill blue-bar" style="width:0%" data-width="66%"></div></div><span class="bar-val">48억</span></div>
+<div class="bar-item"><span class="bar-label">잠실주공5단지</span><div class="bar-track"><div class="bar-fill blue-bar" style="width:0%" data-width="62%"></div></div><span class="bar-val">45억</span></div>
+<div class="bar-item"><span class="bar-label">잠실엘스</span><div class="bar-track"><div class="bar-fill green-bar" style="width:0%" data-width="41%"></div></div><span class="bar-val">30억</span></div>
+<div class="bar-item"><span class="bar-label">헬리오시티</span><div class="bar-track"><div class="bar-fill green-bar" style="width:0%" data-width="41%"></div></div><span class="bar-val">30억</span></div>
+</div>
+</div>
+</div>
+</section>
+
+<section class="section fade-in" id="timeline">
+<div class="section-label">Development Timeline</div>
+<h2 class="section-title">잠실권 개발 타임라인</h2>
+<p class="section-desc">재건축 + 교통 + 개발 호재가 동시 진행되는 메가 프로젝트 일정입니다.</p>
+<div class="timeline">
+<div class="tl-item"><div class="tl-content"><div class="tl-year">2026</div><ul class="tl-events"><li>&#128679; MICE 복합단지 착공 (2조원)</li><li>&#127968; 잠실주공5단지 이주 개시</li><li>&#128196; 현대차 GBC 인허가</li><li>&#128643; 위례신사선 착공 추진</li></ul></div><div class="tl-dot active"></div><div class="tl-content"></div></div>
+<div class="tl-item"><div class="tl-content"></div><div class="tl-dot"></div><div class="tl-content"><div class="tl-year">2027</div><ul class="tl-events"><li>&#127959; 잠실주공5단지 착공 (65층, 6,387세대)</li><li>&#128643; GTX-A 삼성역 부분 개통</li></ul></div></div>
+<div class="tl-item"><div class="tl-content"><div class="tl-year">2028</div><ul class="tl-events"><li>&#128643; GTX-A 삼성역 완전 개통</li><li>&#128643; GTX-C 개통 목표</li></ul></div><div class="tl-dot"></div><div class="tl-content"></div></div>
+<div class="tl-item"><div class="tl-content"></div><div class="tl-dot"></div><div class="tl-content"><div class="tl-year">2029</div><ul class="tl-events"><li>&#127795; 탄천 1구간 수변공원 완공</li></ul></div></div>
+<div class="tl-item"><div class="tl-content"><div class="tl-year">2031</div><ul class="tl-events"><li>&#127968; 잠실주공5단지 입주 (6,387가구)</li><li>&#128643; GTX-B 개통</li><li>&#127961; 현대차 GBC 완공 (5.2조)</li></ul></div><div class="tl-dot"></div><div class="tl-content"></div></div>
+<div class="tl-item"><div class="tl-content"></div><div class="tl-dot"></div><div class="tl-content"><div class="tl-year">2032</div><ul class="tl-events"><li>&#127961; MICE 복합단지 준공 (코엑스 3배)</li><li>&#128643; 위례신사선 개통</li><li>&#127795; 탄천 2구간 수변공원 완공</li></ul></div></div>
+</div>
+</section>
+
+<section class="section fade-in" id="map-section">
+<div class="section-label">Location Intelligence</div>
+<h2 class="section-title">잠실 재건축 입지 지도</h2>
+<p class="section-desc">각 단지 위치와 주요 개발 호재 사업지를 지도에서 확인하세요.</p>
+<div id="map"></div>
+</section>
+
+<section class="section fade-in" id="policy">
+<div class="section-label">Policy & Regulation</div>
+<h2 class="section-title">정책/규제 핵심 요약</h2>
+<p class="section-desc">현행 규제가 잠실 재건축 투자에 미치는 실질적 영향을 정리합니다.</p>
+<table class="policy-table">
+<thead><tr><th>규제 항목</th><th>핵심 내용</th><th>잠실 영향</th><th>리스크</th></tr></thead>
+<tbody>
+<tr><td>토지거래허가구역</td><td>서울 전역 지정 (~2026.12)</td><td>실거주 2년 의무, 갭투자 불가</td><td><span class="status-chip chip-danger">높음</span></td></tr>
+<tr><td>대출 규제</td><td>25억 초과 주담대 최대 2억</td><td>45억 단지 매수 시 자기자본 43억+ 필요</td><td><span class="status-chip chip-danger">높음</span></td></tr>
+<tr><td>재초환(초과이익환수)</td><td>면제 8천만원, 20년 보유시 70% 감면</td><td>장기보유 1주택자에게 유리</td><td><span class="status-chip chip-warning">보통</span></td></tr>
+<tr><td>분양가상한제</td><td>송파구 전면 적용</td><td>3년 실거주 의무, 조합 수익 제한</td><td><span class="status-chip chip-warning">보통</span></td></tr>
+<tr><td>양도세 중과 유예</td><td>다주택자 유예 2026.5 종료 예정</td><td>유예 종료 시 기본세율+20~30%p 중과</td><td><span class="status-chip chip-danger">높음</span></td></tr>
+<tr><td>안전진단 완화</td><td>30년 이상 패스트트랙, 예비 안전진단 폐지</td><td>사업 기간 최대 3년 단축 가능</td><td><span class="status-chip chip-info">호재</span></td></tr>
+<tr><td>조합설립 요건</td><td>동의 요건 1/2 → 1/3 완화</td><td>재건축 추진 가속화</td><td><span class="status-chip chip-info">호재</span></td></tr>
+</tbody>
+</table>
+</section>
+
+<section class="section fade-in" id="risk">
+<div class="section-label">Risk Assessment</div>
+<h2 class="section-title">리스크 매트릭스</h2>
+<p class="section-desc">발생 확률과 영향도를 기준으로 잠실 재건축 투자 리스크를 평가합니다.</p>
+<div class="risk-matrix">
+<div class="axis-label"></div>
+<div class="risk-axis-header">낮음</div>
+<div class="risk-axis-header">보통</div>
+<div class="risk-axis-header">높음</div>
+
+<div class="axis-label y-label" style="grid-row:2">영향 높음</div>
+<div class="risk-cell mid-risk"><span class="risk-tag rtag-mid">시장 하락기</span></div>
+<div class="risk-cell high-risk"><span class="risk-tag rtag-high">추가 공사비</span><small style="color:var(--text-muted);font-size:.65rem">둔촌 사례: 1조원</small></div>
+<div class="risk-cell high-risk"><span class="risk-tag rtag-high">사업 장기 지연</span><small style="color:var(--text-muted);font-size:.65rem">평균 10.6년</small></div>
+
+<div class="axis-label y-label" style="grid-row:3">영향 보통</div>
+<div class="risk-cell low-risk"><span class="risk-tag rtag-low">금리 급등</span></div>
+<div class="risk-cell mid-risk"><span class="risk-tag rtag-mid">보유세 강화</span><small style="color:var(--text-muted);font-size:.65rem">2026년 종부세 강화</small></div>
+<div class="risk-cell mid-risk"><span class="risk-tag rtag-mid">대출 규제 강화</span></div>
+
+<div class="axis-label y-label" style="grid-row:4">영향 낮음</div>
+<div class="risk-cell low-risk"><span class="risk-tag rtag-low">조합 내분</span></div>
+<div class="risk-cell low-risk"><span class="risk-tag rtag-low">정권 교체</span></div>
+<div class="risk-cell mid-risk"><span class="risk-tag rtag-mid">양도 제한</span></div>
+
+<div></div>
+<div style="text-align:center;padding:.3rem;font-size:.7rem;color:var(--text-muted)">발생확률 &#8594;</div>
+<div></div><div></div>
+</div>
+</section>
+
+<section class="section fade-in" id="verdict">
+<div class="section-label">Final Verdict</div>
+<h2 class="section-title">전문가 종합 의견 & 최종 추천</h2>
+<p class="section-desc">6개 에이전트의 분석 결과를 종합한 투자 매력도 최종 순위입니다.</p>
+<div class="verdict-box">
+<div class="verdict-rank">&#9670; 투자 매력도 최종 순위 &#9670;</div>
+<div class="verdict-grid">
+<div class="verdict-item">
+<div class="v-rank">01</div>
+<div class="v-name">우성 4차</div>
+<div class="v-return">연 8~10%</div>
+<div class="v-reason">사업 속도 최고 / 저가 진입점 / DL이앤씨 확정 / 49층 초고층 전환</div>
+</div>
+<div class="verdict-item">
+<div class="v-rank">02</div>
+<div class="v-name">장미 1/2차</div>
+<div class="v-return">연 5~8%</div>
+<div class="v-reason">한강 조망 60~70% / 4,800세대 메가단지 / 최고 49층 / 사업 초기 저가</div>
+</div>
+<div class="verdict-item">
+<div class="v-rank">03</div>
+<div class="v-name">우성 1/2/3차</div>
+<div class="v-return">연 5~7%</div>
+<div class="v-reason">GS건설 시공 확정 / 49층 2,644세대 / 잠실 자이 리비에르 브랜드</div>
+</div>
+<div class="verdict-item">
+<div class="v-rank">04</div>
+<div class="v-name">잠실주공 5단지</div>
+<div class="v-return">연 0~2%</div>
+<div class="v-reason">확실한 대장주 / 65층 랜드마크 / 단, 프리미엄 이미 반영 (45억)</div>
+</div>
+</div>
+<div class="verdict-note">
+<strong style="color:var(--gold)">&#9670; 최종 전략 제언</strong><br><br>
+<strong>1주택 실거주 투자자</strong>라면 <strong style="color:var(--green)">우성 4차</strong>가 사업 진행 속도, 진입 가격, 수익률 면에서 가장 매력적입니다. 사업시행인가~관리처분인가 구간에서 가격 급등이 예상되며, 3~4년 내 수익 실현이 가능합니다.<br><br>
+<strong>장기 보유(5년+) 여력</strong>이 있다면 <strong style="color:var(--blue-light)">장미 1/2차</strong>가 한강 조망 프리미엄으로 가장 높은 상승 잠재력을 보유하고 있으나, 사업 불확실성이 가장 큽니다.<br><br>
+<strong>잠실주공5단지</strong>는 송파구 대장주로서 자산 보전 가치는 최고이나, 현재 매입가 대비 추가 수익이 제한적입니다. <strong>자기자본 43억+ 확보가 전제</strong>이며, "투자"보다는 "거주+자산보전" 관점에 적합합니다.<br><br>
+<span style="color:var(--red)">&#9888; 공통 주의사항</span>: 토지거래허가구역(실거주 2년), 양도세 중과 유예 종료(2026.5), 스트레스 DSR 3단계 시행 등 규제 환경을 반드시 고려하세요. 투자 전 세무사/감정평가사 상담을 권장합니다.
+</div>
+</div>
+</section>
+
+<footer>
+<div class="disclaimer">
+본 보고서는 AI 에이전트의 웹 검색 및 공공데이터 API 기반 분석 결과이며, 투자 권유가 아닙니다.<br>
+실제 투자 결정은 공인중개사, 세무사, 감정평가사 등 전문가 상담 후 진행하시기 바랍니다.<br><br>
+&#169; 2026 JR INVEST Analysis — Powered by Claude Code + Korea Real Estate MCP
+</div>
+</footer>
+
+<script>
+// Scroll fade-in
+const obs=new IntersectionObserver((entries)=>{entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('visible');animateBars(e.target)}})},{threshold:.15});
+document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
+
+function animateBars(section){
+section.querySelectorAll('.progress-fill, .bar-fill').forEach(bar=>{
+const w=bar.dataset.width;if(w)setTimeout(()=>{bar.style.width=w},200);
+})}
+
+// Leaflet Map
+const map=L.map('map',{scrollWheelZoom:false}).setView([37.5130,127.0830],14);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+attribution:'&copy; OpenStreetMap &copy; CARTO',maxZoom:19}).addTo(map);
+
+const markers=[
+{pos:[37.5115,127.0830],name:'잠실주공5단지',price:'45억',stage:'사업시행인가 신청',color:'#c9a84c',r:14},
+{pos:[37.5165,127.0870],name:'장미 1차',price:'30~33억',stage:'정비계획 협의중',color:'#3a6fd8',r:10},
+{pos:[37.5155,127.0890],name:'장미 2차',price:'30~33억',stage:'정비계획 협의중',color:'#3a6fd8',r:10},
+{pos:[37.5095,127.0815],name:'우성 1/2/3차',price:'33~35억',stage:'시공사 선정 완료 (GS)',color:'#5b8def',r:11},
+{pos:[37.5170,127.0780],name:'잠실엘스',price:'30억',stage:'신축 (2008)',color:'#2ecc71',r:12},
+{pos:[37.5140,127.0760],name:'리센츠',price:'27~28억',stage:'신축 (2008)',color:'#2ecc71',r:11},
+{pos:[37.5130,127.0800],name:'트리지움',price:'26~28억',stage:'신축 (2007)',color:'#2ecc71',r:10},
+{pos:[37.5190,127.0880],name:'파크리오',price:'28~29억',stage:'신축 (2008)',color:'#2ecc71',r:11},
+{pos:[37.5155,127.0745],name:'레이크팰리스',price:'31~32억',stage:'신축 (2006)',color:'#2ecc71',r:10},
+{pos:[37.4975,127.1270],name:'헬리오시티',price:'29~31억',stage:'신축 (2018)',color:'#2ecc71',r:12},
+{pos:[37.5148,127.0920],name:'잠실 르엘',price:'48억',stage:'2026.1 입주 완료',color:'#e8d48b',r:10},
+{pos:[37.5155,127.0725],name:'MICE 복합단지',price:'2조원 개발',stage:'2026 착공 → 2032 준공',color:'#d94452',r:13},
+{pos:[37.5120,127.0610],name:'현대차 GBC',price:'5.2조원',stage:'2026 인허가 → 2031 완공',color:'#d94452',r:13},
+];
+
+markers.forEach(m=>{
+const circle=L.circleMarker(m.pos,{radius:m.r,fillColor:m.color,color:'rgba(255,255,255,.3)',weight:1,fillOpacity:.7}).addTo(map);
+circle.bindPopup(`<div class="popup-title">${m.name}</div><div class="popup-price">${m.price}</div><div class="popup-stage">${m.stage}</div>`,{maxWidth:250});
+});
+</script>
+</body>
+</html>
