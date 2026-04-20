@@ -1,0 +1,246 @@
+{
+  "as_of": "2026-02-20",
+  "version": "v7",
+  "method": "district prior + market proxy blend",
+  "district_priors": {
+    "강남구": {
+      "governance": 55,
+      "liveability": 86,
+      "demand_persistence": 92,
+      "management_quality": 80,
+      "sentiment": 76,
+      "flags": [
+        "집중규제",
+        "가격부담"
+      ]
+    },
+    "강동구": {
+      "governance": 58,
+      "liveability": 72,
+      "demand_persistence": 70,
+      "management_quality": 68,
+      "sentiment": 63,
+      "flags": [
+        "공급변동"
+      ]
+    },
+    "강북구": {
+      "governance": 60,
+      "liveability": 58,
+      "demand_persistence": 56,
+      "management_quality": 57,
+      "sentiment": 52,
+      "flags": [
+        "노후주거비중"
+      ]
+    },
+    "강서구": {
+      "governance": 61,
+      "liveability": 63,
+      "demand_persistence": 66,
+      "management_quality": 62,
+      "sentiment": 58,
+      "flags": [
+        "공항소음권역"
+      ]
+    },
+    "관악구": {
+      "governance": 59,
+      "liveability": 62,
+      "demand_persistence": 67,
+      "management_quality": 60,
+      "sentiment": 59,
+      "flags": [
+        "대학수요편중"
+      ]
+    },
+    "광진구": {
+      "governance": 62,
+      "liveability": 74,
+      "demand_persistence": 76,
+      "management_quality": 66,
+      "sentiment": 68,
+      "flags": []
+    },
+    "구로구": {
+      "governance": 60,
+      "liveability": 60,
+      "demand_persistence": 64,
+      "management_quality": 61,
+      "sentiment": 57,
+      "flags": [
+        "노후산업지혼재"
+      ]
+    },
+    "금천구": {
+      "governance": 61,
+      "liveability": 57,
+      "demand_persistence": 58,
+      "management_quality": 59,
+      "sentiment": 54,
+      "flags": [
+        "업무핵심거리"
+      ]
+    },
+    "노원구": {
+      "governance": 62,
+      "liveability": 65,
+      "demand_persistence": 63,
+      "management_quality": 63,
+      "sentiment": 58,
+      "flags": [
+        "노후단지비중"
+      ]
+    },
+    "도봉구": {
+      "governance": 61,
+      "liveability": 59,
+      "demand_persistence": 56,
+      "management_quality": 60,
+      "sentiment": 53,
+      "flags": [
+        "수요탄성낮음"
+      ]
+    },
+    "동대문구": {
+      "governance": 61,
+      "liveability": 64,
+      "demand_persistence": 65,
+      "management_quality": 63,
+      "sentiment": 60,
+      "flags": []
+    },
+    "동작구": {
+      "governance": 63,
+      "liveability": 76,
+      "demand_persistence": 78,
+      "management_quality": 68,
+      "sentiment": 70,
+      "flags": []
+    },
+    "마포구": {
+      "governance": 64,
+      "liveability": 82,
+      "demand_persistence": 85,
+      "management_quality": 72,
+      "sentiment": 74,
+      "flags": []
+    },
+    "서대문구": {
+      "governance": 63,
+      "liveability": 73,
+      "demand_persistence": 72,
+      "management_quality": 68,
+      "sentiment": 67,
+      "flags": []
+    },
+    "서초구": {
+      "governance": 56,
+      "liveability": 87,
+      "demand_persistence": 90,
+      "management_quality": 80,
+      "sentiment": 77,
+      "flags": [
+        "집중규제",
+        "가격부담"
+      ]
+    },
+    "성동구": {
+      "governance": 64,
+      "liveability": 80,
+      "demand_persistence": 83,
+      "management_quality": 73,
+      "sentiment": 75,
+      "flags": []
+    },
+    "성북구": {
+      "governance": 62,
+      "liveability": 68,
+      "demand_persistence": 66,
+      "management_quality": 65,
+      "sentiment": 61,
+      "flags": []
+    },
+    "송파구": {
+      "governance": 55,
+      "liveability": 86,
+      "demand_persistence": 91,
+      "management_quality": 79,
+      "sentiment": 76,
+      "flags": [
+        "집중규제",
+        "가격부담"
+      ]
+    },
+    "양천구": {
+      "governance": 60,
+      "liveability": 78,
+      "demand_persistence": 74,
+      "management_quality": 71,
+      "sentiment": 69,
+      "flags": [
+        "목동재건축정책민감"
+      ]
+    },
+    "영등포구": {
+      "governance": 62,
+      "liveability": 81,
+      "demand_persistence": 84,
+      "management_quality": 71,
+      "sentiment": 73,
+      "flags": []
+    },
+    "용산구": {
+      "governance": 54,
+      "liveability": 85,
+      "demand_persistence": 89,
+      "management_quality": 77,
+      "sentiment": 75,
+      "flags": [
+        "집중규제",
+        "개발이벤트변동"
+      ]
+    },
+    "은평구": {
+      "governance": 62,
+      "liveability": 67,
+      "demand_persistence": 64,
+      "management_quality": 64,
+      "sentiment": 60,
+      "flags": [
+        "공급변동"
+      ]
+    },
+    "종로구": {
+      "governance": 59,
+      "liveability": 72,
+      "demand_persistence": 66,
+      "management_quality": 67,
+      "sentiment": 62,
+      "flags": [
+        "도심업무수요의존"
+      ]
+    },
+    "중구": {
+      "governance": 58,
+      "liveability": 74,
+      "demand_persistence": 68,
+      "management_quality": 66,
+      "sentiment": 63,
+      "flags": [
+        "도심업무수요의존"
+      ]
+    },
+    "중랑구": {
+      "governance": 61,
+      "liveability": 60,
+      "demand_persistence": 59,
+      "management_quality": 61,
+      "sentiment": 56,
+      "flags": [
+        "상대저밀고용"
+      ]
+    }
+  },
+  "complex_overrides": {}
+}

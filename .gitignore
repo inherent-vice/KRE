@@ -3,3 +3,11 @@ __pycache__/
 *.pyc
 ~$*
 nul
+
+# 임시/캐시 파일
+_tmp_*.json
+seoul_market_cache_*.json
+
+# 생성 결과물 (대용량 xlsx)
+seoul_v*.xlsx
+서울_*.xlsx
